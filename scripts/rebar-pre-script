@@ -12,7 +12,7 @@ ERL_BIN=$YAWS_ERLBINDIR/erl
 WERL_BIN=$YAWS_ERLBINDIR/werl
 
 # For rebar, support only local install for the yaws script.
-YAWS_LOCALINSTALL=true
+YAWS_LOCALINSTALL=false
 
 script=`basename $0`
 
@@ -66,24 +66,15 @@ keep_or_replace yaws_generated.erl $tmpgen
 
 cd ../scripts
 
-case $YAWS_LOCALINSTALL in
-    true)
-        tmpgen=`mktemp /tmp/${script}.XXXXXX` || fail
-        VARDIR="${YAWS_VARDIR}" ERLBINDIR="${YAWS_ERLBINDIR}" \
-            ERL="${ERL_BIN}" WERL="${WERL_BIN}" ./gen-yaws > $tmpgen || fail
-        keep_or_replace ../bin/yaws $tmpgen
-        if [ $? -eq 0 ]; then
-            VARDIR="${YAWS_VARDIR}" ./local-install false || fail
-        else
-            chmod +x ../bin/yaws || fail
-            VARDIR="${YAWS_VARDIR}" ./local-install true || fail
-        fi
-       ;;
-    *)
-       echo "ERROR: Configurations other than 'localinstall' not yet \
-            supported with rebar"
-       exit 1
-       ;;
-esac
+tmpgen=`mktemp /tmp/${script}.XXXXXX` || fail
+VARDIR="${YAWS_VARDIR}" ERLBINDIR="${YAWS_ERLBINDIR}" \
+    ERL="${ERL_BIN}" WERL="${WERL_BIN}" ./gen-yaws > $tmpgen || fail
+keep_or_replace ../bin/yaws $tmpgen
+if [ $? -eq 0 ]; then
+    VARDIR="${YAWS_VARDIR}" ./local-install false || fail
+else
+    chmod +x ../bin/yaws || fail
+    VARDIR="${YAWS_VARDIR}" ./local-install true || fail
+fi
 
 exit 0
